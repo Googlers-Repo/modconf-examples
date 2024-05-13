@@ -1,6 +1,6 @@
 import React from "react"
-import { Button } from "@mui/material"
-import { useTheme } from "@mmrl/hooks"
+import { Button, Stack, TextField } from "@mui/material"
+import { useTheme, useActivity } from "@mmrl/hooks"
 import { Page, Toolbar } from "@mmrl/ui"
 
 const LINES = [
@@ -22,20 +22,22 @@ const hasWinner = (values) => {
   return false;
 };
 
-const changePlayer = (player) => {
-  return player === 'O' ? 'X' : 'O';
-};
-
 const DEFAULT_VALUES = Array(9).fill('');
-const DEFAULT_PLAYER = 'O';
-const DEFAULT_WINNER = null;
 
 export default () => {
+  const [playerOne, setPlayerOne] = React.useState("O");
+  const [playerTwo, setPlayerTwo] = React.useState("X");
+
+  const changePlayer = (player) => {
+    return player === playerOne ? playerTwo : playerOne;
+  };
+
   const [values, setValues] = React.useState(DEFAULT_VALUES);
-  const [player, setPlayer] = React.useState(DEFAULT_PLAYER);
+  const [player, setPlayer] = React.useState(playerOne);
   const winner = hasWinner(values) ? changePlayer(player) : null;
 
   const { theme } = useTheme()
+  const { context } = useActivity()
 
   const play = (index) => {
     if (winner) return;
@@ -49,7 +51,7 @@ export default () => {
 
   const reset = () => {
     setValues(DEFAULT_VALUES);
-    setPlayer(DEFAULT_PLAYER);
+    setPlayer(playerOne);
   };
 
   const renderToolbar = () => {
@@ -61,7 +63,7 @@ export default () => {
           background: "linear-gradient(22deg, rgba(188,2,194,1) 0%, rgba(74,20,140,1) 100%)",
         }}>
         <Toolbar.Left>
-          <Toolbar.BackButton />
+          <Toolbar.BackButton onClick={context.popPage} />
         </Toolbar.Left>
         <Toolbar.Center>Tic Tac Toe</Toolbar.Center>
       </Toolbar>
@@ -127,15 +129,32 @@ export default () => {
           </div>
         ))}
       </div>
-      <div className="info">
-        <h3>
-          Player: {player}
-          {winner && ` | Winner: ${winner}`}
-        </h3>
-        <Button variant="contained" onClick={reset}>
-          Reset
-        </Button>
-      </div>
+      <Stack
+        sx={{ ml: 1, mr: 1 }}
+        direction="column"
+        justifyContent="center"
+        alignItems="center"
+        spacing={3}
+      >
+        <div className="info">
+          <h3>
+            Player: {player}
+            {winner && ` | Winner: ${winner}`}
+          </h3>
+          <Button variant="contained" onClick={reset}>
+            Reset
+          </Button>
+        </div>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={1}
+        >
+          <TextField label="Player 1" variant="outlined" value={playerOne} onChange={(e) => setPlayerOne(e.target.value)} />
+          <TextField label="Player 2" variant="outlined" value={playerTwo} onChange={(e) => setPlayerTwo(e.target.value)} />
+        </Stack>
+      </Stack>
     </Page>
   );
 };
