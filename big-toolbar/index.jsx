@@ -12,7 +12,6 @@ export default () => {
 
   React.useEffect(() => {
     if (leftWidthRef.current && rightWidthRef.current && toolbarHeightRef.current) {
-console.log([leftWidthRef.current.clientWidth, rightWidthRef.current.clientWidth, toolbarHeightRef.current.clientHeight])
       setWidth([leftWidthRef.current.clientWidth, rightWidthRef.current.clientWidth, toolbarHeightRef.current.clientHeight])
     }
   }, [])
