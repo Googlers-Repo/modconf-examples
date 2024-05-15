@@ -2,17 +2,32 @@ import React from "react"
 import { List, ListItem, Switch, ListSubheader, ListItemText } from "@mui/material"
 import { Page, Toolbar, ListItemDialogEditText } from "@mmrl/ui"
 
+const toolbarHeight = "calc(56px + 10%)"
+
 export default () => {
+  const leftWidthRef = React.useRef()
+  const rightWidthRef = React.useRef()
+  const toolbarHeightRef = React.useRef()
+  const [width, setWidth] = React.useState([0, 0, 56])
+
+  React.useEffect(() => {
+    if (leftWidthRef.current && rightWidthRef.current && toolbarHeightRef.current) {
+console.log([leftWidthRef.current.clientWidth, rightWidthRef.current.clientWidth, toolbarHeightRef.current.clientHeight])
+      setWidth([leftWidthRef.current.clientWidth, rightWidthRef.current.clientWidth, toolbarHeightRef.current.clientHeight])
+    }
+  }, [])
+
   const renderToolbar = () => {
     return (
       <Toolbar
+        ref={toolbarHeightRef}
         modifier="noshadow"
         sx={{
-          height: "calc(56px + 10%)",
+          height: toolbarHeight,
           background: "rgb(188,2,194)",
           background: "linear-gradient(22deg, rgba(188,2,194,1) 0%, rgba(74,20,140,1) 100%)",
         }}>
-        <Toolbar.Left>
+        <Toolbar.Left id="blue" ref={leftWidthRef}>
           <Toolbar.BackButton />
         </Toolbar.Left>
         <Toolbar.Center sx={{
@@ -22,8 +37,11 @@ export default () => {
           display: "flex",
           alignSelf: "center",
           alignItems: "center",
-          marginLeft: "calc(-72px + 16px)"
+        }} style={{
+          marginLeft: -width[0] + width[1]
         }}>MMRL Install Tools</Toolbar.Center>
+
+        <Toolbar.Right ref={rightWidthRef}/>
       </Toolbar>
     )
   }
@@ -32,7 +50,7 @@ export default () => {
     <Page
       renderToolbar={renderToolbar}
       sx={{
-        top: "calc(56px + 10%) !important"
+        top: `${width[2]}px !important`
       }}>
       <List subheader={<ListSubheader>Settings</ListSubheader>}>
         <ListItem>
