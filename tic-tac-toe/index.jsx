@@ -49,6 +49,18 @@ export default () => {
     setPlayer(perPlayer => changePlayer(perPlayer));
   };
 
+  const lobbyMusic = React.useMemo(() => {
+    const a = new Audio("https://joeybabcock.me/blog/wp-content/uploads/2019/05/lobby-classic-game.mp3")
+    a.loop = true
+    return a
+  }, [])
+  React.useEffect(() => {
+    lobbyMusic.play()
+    return () => {
+      lobbyMusic.pause()
+    }
+  }, [])
+
   const reset = () => {
     setValues(DEFAULT_VALUES);
     setPlayer(playerOne);
