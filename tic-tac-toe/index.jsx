@@ -1,6 +1,7 @@
 import React from "react"
 import { Button, Stack, TextField } from "@mui/material"
-import { useTheme, useActivity } from "@mmrl/hooks"
+import { VolumeUp, VolumeOff } from '@mui/icons-material';
+import { useTheme, useActivity, useNativeStorage } from "@mmrl/hooks"
 import { Page, Toolbar } from "@mmrl/ui"
 
 const LINES = [
@@ -49,17 +50,22 @@ export default () => {
     setPlayer(perPlayer => changePlayer(perPlayer));
   };
 
+  const [lobbyMusicEnabled, setLobbyMusicEnabled] = useNativeStorage(`${modid}_lobby_music_enabled`, true)
   const lobbyMusic = React.useMemo(() => {
     const a = new Audio("https://joeybabcock.me/blog/wp-content/uploads/2019/05/lobby-classic-game.mp3")
     a.loop = true
     return a
   }, [])
   React.useEffect(() => {
-    lobbyMusic.play()
+    if (lobbyMusicEnabled) {
+      lobbyMusic.play()
+    } else {
+      lobbyMusic.pause()
+    }
     return () => {
       lobbyMusic.pause()
     }
-  }, [])
+  }, [lobbyMusicEnabled])
 
   const reset = () => {
     setValues(DEFAULT_VALUES);
@@ -78,6 +84,11 @@ export default () => {
           <Toolbar.BackButton onClick={context.popPage} />
         </Toolbar.Left>
         <Toolbar.Center>Tic Tac Toe</Toolbar.Center>
+        <Toolbar.Right>
+          <Toolbar.Button icon={lobbyMusicEnabled ? VolumeUp : VolumeOff} onClick={() => {
+            setLobbyMusicEnabled((prev) => !prev)
+          }} />
+        </Toolbar.Right>
       </Toolbar>
     )
   }
