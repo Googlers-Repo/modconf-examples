@@ -1,6 +1,6 @@
 import { Page, Toolbar } from "@mmrl/ui";
 import { useActivity, useNativeStorage } from "@mmrl/hooks";
-import { TextField, Stack, Button, Box, IconButton, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import { TextField, Stack, Button, Box, ButtonGroup, Typography, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import { Send, Add, Delete } from '@mui/icons-material';
 
 export default () => {
@@ -23,6 +23,7 @@ export default () => {
   const [newButtonUrl, setNewButtonUrl] = React.useState('');
   const [newButtonValidUrl, setNewButtonValidUrl] = React.useState(false);
   const [selectedRow, setSelectedRow] = React.useState(0); // Default to the first row
+  const [image, setImage] = React.useState("")
 
   React.useEffect(() => {
     if (botToken.length >= (43 || 45)) {
@@ -71,6 +72,10 @@ export default () => {
       return
     }
 
+    console.log(image)
+
+    const type = image ? "caption" : "text"
+
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
@@ -80,8 +85,10 @@ export default () => {
         },
         body: JSON.stringify({
           chat_id: chatId,
-          text: content,
+          [type]: content,
           parse_mode: "Markdown",
+          photo: image,
+          disable_web_page_preview: false,
           reply_markup: JSON.stringify({
             inline_keyboard: buttons || {}
           })
@@ -89,12 +96,13 @@ export default () => {
       }
     );
 
+
     if (response.ok) {
       os.toast("Message sent successfully", Toast.LENGTH_SHORT);
     } else {
       os.toast("Error sending message: " + response.statusText, Toast.LENGTH_SHORT);
     }
-  }, [botToken, chatId, content, buttons])
+  }, [botToken, chatId, content, buttons, image])
 
   const renderToolbar = () => {
     return (
@@ -155,7 +163,6 @@ export default () => {
           variant="filled"
         />
       </Stack>
-
       <TextField
         fullWidth
         label="Message content"
@@ -182,6 +189,23 @@ export default () => {
 
       <Box sx={{ mt: 2 }}>
         <Typography variant="h5" gutterBottom>
+          Image
+        </Typography>
+
+        <Button variant="contained" onClick={async () => {
+          const chooseModule = new Chooser("image/*");
+
+          chooseModule.onChose = (files) => {
+            if (Chooser.isSuccess(files)) {
+              setImage(files[0])
+            }
+          };
+          chooseModule.getFiles();
+        }}>Add Image</Button>
+      </Box>
+
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="h5" gutterBottom>
           Buttons
         </Typography>
 
@@ -203,62 +227,91 @@ export default () => {
           </FormControl>
         </Box>
 
-        <Box>
+        <Stack
+          direction="column"
+          spacing={1}
+          sx={{
+            width: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           {buttons.map((buttonRow, rowIndex) => (
-            <Box
+            <Stack
               key={rowIndex}
-              mb={2}
-              display="flex"
-              gap={2}
-              flexWrap="wrap"
+              direction="row"
+              spacing={1}
+              sx={{
+                width: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
             >
               {buttonRow.map((button, buttonIndex) => (
-                <Box key={buttonIndex} display="flex" alignItems="center" gap={1}>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      minWidth: '120px'
-                    }}
-                    onClick={() => removeButton(rowIndex, buttonIndex)}
-                    endIcon={
-                      <Delete />}
-                  >
-                    {button.text}
+                <ButtonGroup variant="contained" sx={{ width: "100%" }}>
+                  <Button sx={{ width: "100%" }}>{button.text}</Button>
+                  <Button onClick={() => removeButton(rowIndex, buttonIndex)}>
+                    <Delete />
                   </Button>
-                </Box>
+                </ButtonGroup>
               ))}
-            </Box>
+            </Stack>
           ))}
-        </Box>
+        </Stack>
 
-        <Box display="flex" gap={2} mt={3} alignItems="center">
-          <TextField
-            label="Button Text"
-            variant="filled"
-            value={newButtonText}
-            error={!newButtonValidText}
-            onInput={(e) => {
-              setNewButtonValidText(e.target.value.length >= 1)
+        <Stack
+          direction="column"
+          spacing={2}
+          sx={{
+            mt: 2,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              width: "100%",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
-            onChange={(e) => setNewButtonText(e.target.value)}
+          >
+            <TextField
+              label="Button Text"
+              variant="filled"
+              value={newButtonText}
+              error={!newButtonValidText}
+              onInput={(e) => {
+                setNewButtonValidText(e.target.value.length >= 1)
+              }}
+              onChange={(e) => setNewButtonText(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              label="Button URL"
+              value={newButtonUrl}
+              variant="filled"
+              error={!newButtonValidUrl}
+              onInput={(e) => {
+                const regex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:[0-9]{1,5})?(\/.*)?$/;
+                setNewButtonValidUrl(regex.test(e.target.value))
+              }}
+              onChange={(e) => setNewButtonUrl(e.target.value)}
+              fullWidth
+            />
+          </Stack>
+          <Button
+            variant="outlined"
             fullWidth
-          />
-          <TextField
-            label="Button URL"
-            value={newButtonUrl}
-            variant="filled"
-            error={!newButtonValidUrl}
-            onInput={(e) => {
-              const regex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:[0-9]{1,5})?(\/.*)?$/;
-              setNewButtonValidUrl(regex.test(e.target.value))
-            }}
-            onChange={(e) => setNewButtonUrl(e.target.value)}
-            fullWidth
-          />
-          <IconButton disabled={!(newButtonValidText && newButtonValidUrl)} color="primary" onClick={addNewButton}>
-            <Add />
-          </IconButton>
-        </Box>
+            disabled={!(newButtonValidText && newButtonValidUrl)}
+            color="primary"
+            onClick={addNewButton}
+            endIcon={<Add />}>
+            Add new Button
+          </Button>
+        </Stack>
       </Box>
     </Page>
   );
